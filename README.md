@@ -1,6 +1,6 @@
 # AI Chatbot
 
-A simple web-based chatbot built with HTML, CSS, and JavaScript using fixed responses.
+A web-based chatbot built with HTML, CSS, JavaScript frontend and Node.js backend with OpenAI API integration.
 
 ## Features
 
@@ -8,48 +8,99 @@ A simple web-based chatbot built with HTML, CSS, and JavaScript using fixed resp
 - **Real-time Chat Interface**: User-friendly chat interface with message bubbles
 - **Typing Indicators**: Shows when the bot is "thinking" with animated dots
 - **Responsive Design**: Works on desktop and mobile devices
-- **Fixed Bot Responses**: Pre-programmed responses for common questions
+- **OpenAI Integration**: Real AI responses using GPT-3.5-turbo
+- **Conversation History**: Maintains context across messages
 - **Auto-scroll**: Automatically scrolls to the latest message
 - **Keyboard Support**: Press Enter to send messages
 
+## Setup Instructions
+
+### Prerequisites
+- Node.js (v14 or higher)
+- OpenAI API key
+
+### Installation
+
+1. **Install dependencies:**
+   ```bash
+   npm install
+   ```
+
+2. **Set up environment variables:**
+   - Copy `env.example` to `.env`
+   - Add your OpenAI API key to the `.env` file:
+     ```
+     OPENAI_API_KEY=your_actual_openai_api_key_here
+     PORT=3000
+     ```
+
+3. **Start the server:**
+   ```bash
+   npm start
+   ```
+   Or for development with auto-restart:
+   ```bash
+   npm run dev
+   ```
+
+4. **Access the chatbot:**
+   - Open your browser and go to `http://localhost:3000`
+   - Start chatting with the AI!
+
 ## How to Use
 
-1. Open `index.html` in any modern web browser
+1. Open `http://localhost:3000` in any modern web browser
 2. Type your message in the input field
 3. Press Enter or click the "Send" button
-4. The bot will respond with pre-programmed answers
+4. The AI will respond using OpenAI's GPT-3.5-turbo model
 
-## Bot Responses
+## API Endpoints
 
-The chatbot can respond to various keywords and phrases:
+The backend provides the following API endpoints:
 
-- **Greetings**: "hello", "hi"
-- **Personal Questions**: "how are you", "what is your name"
-- **Help Requests**: "help"
-- **Farewell**: "bye"
-- **Gratitude**: "thanks", "thank you"
-- **Information Requests**: "weather", "time"
-- **Entertainment**: "joke"
-- **General Questions**: "what can you do", "who are you", "how do you work"
+- `POST /api/chat` - Send a message and get AI response
+- `GET /api/conversation/:sessionId` - Get conversation history
+- `DELETE /api/conversation/:sessionId` - Clear conversation history
+- `GET /api/health` - Health check endpoint
+
+## Conversation Management
+
+- Each chat session has a unique session ID
+- Conversation history is maintained in memory (resets on server restart)
+- Context is preserved across messages for more coherent conversations
+- Maximum of 10 messages kept in context to prevent token limits
 
 ## File Structure
 
 ```
 Aiagent/
-├── index.html          # Main chatbot application
+├── index.html          # Frontend chatbot application
+├── server.js           # Node.js backend server
+├── package.json        # Node.js dependencies
+├── env.example         # Environment variables template
+├── .gitignore          # Git ignore rules
 └── README.md          # This file
 ```
 
 ## Customization
 
-To add more responses, edit the `botResponses` object in the JavaScript section of `index.html`:
+### Backend Customization
+
+To modify the AI behavior, edit the system message in `server.js`:
 
 ```javascript
-this.botResponses = {
-    'your keyword': 'Your response here',
-    // Add more responses...
-};
+{
+    role: 'system',
+    content: 'You are a helpful AI assistant. Be friendly, concise, and helpful in your responses.'
+}
 ```
+
+### Frontend Customization
+
+To modify the UI, edit the CSS styles in `index.html`. The main classes are:
+- `.chat-container` - Main chat window
+- `.message` - Individual message styling
+- `.chat-input` - Input field styling
 
 ## Browser Compatibility
 
@@ -60,8 +111,9 @@ this.botResponses = {
 
 ## Future Enhancements
 
-- Integration with real AI APIs
-- Voice input/output
-- File sharing capabilities
-- User authentication
-- Conversation history storage 
+- Database integration for persistent conversation storage
+- Voice input/output capabilities
+- File sharing and image processing
+- User authentication and multiple user support
+- Advanced conversation analytics
+- Integration with other AI models 
