@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const OpenAI = require('openai');
+const { createClient } = require('@supabase/supabase-js');
 require('dotenv').config();
 
 const app = express();
@@ -16,7 +17,13 @@ const openai = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY,
 });
 
-// Store conversations in memory (in production, use a database)
+// Initialize Supabase
+const supabase = createClient(
+    process.env.SUPABASE_URL,
+    process.env.SUPABASE_ANON_KEY
+);
+
+// Store conversations in memory as fallback (will be replaced by Supabase)
 const conversations = new Map();
 
 // Routes
@@ -33,12 +40,17 @@ app.post('/api/chat', async (req, res) => {
             return res.status(400).json({ error: 'Message is required' });
         }
 
-        // Get or create conversation history for this session
-        if (!conversations.has(sessionId)) {
-            conversations.set(sessionId, []);
+        // Get existing conversation from Supabase
+        let { data: existingConversation, error: fetchError } = await supabase
+            .from('conversations')
+            .select('messages')
+            .eq('conversation_id', sessionId)
+            .single();
+
+        let conversation = [];
+        if (existingConversation) {
+            conversation = existingConversation.messages || [];
         }
-        
-        const conversation = conversations.get(sessionId);
         
         // Add user message to conversation history
         conversation.push({ role: 'user', content: message });
@@ -70,6 +82,35 @@ app.post('/api/chat', async (req, res) => {
             conversation.splice(0, 2); // Remove oldest user and assistant messages
         }
         
+        // Save conversation to Supabase
+        if (existingConversation) {
+            // Update existing conversation
+            const { error: updateError } = await supabase
+                .from('conversations')
+                .update({ 
+                    messages: conversation,
+                    created_at: new Date().toISOString()
+                })
+                .eq('conversation_id', sessionId);
+                
+            if (updateError) {
+                console.error('Error updating conversation:', updateError);
+            }
+        } else {
+            // Create new conversation
+            const { error: insertError } = await supabase
+                .from('conversations')
+                .insert({
+                    conversation_id: sessionId,
+                    messages: conversation,
+                    created_at: new Date().toISOString()
+                });
+                
+            if (insertError) {
+                console.error('Error creating conversation:', insertError);
+            }
+        }
+        
         res.json({ 
             response: botResponse,
             conversation: conversation
@@ -85,29 +126,85 @@ app.post('/api/chat', async (req, res) => {
 });
 
 // API endpoint to get conversation history
-app.get('/api/conversation/:sessionId', (req, res) => {
-    const { sessionId } = req.params;
-    const conversation = conversations.get(sessionId) || [];
-    res.json({ conversation });
+app.get('/api/conversation/:sessionId', async (req, res) => {
+    try {
+        const { sessionId } = req.params;
+        
+        const { data: conversation, error } = await supabase
+            .from('conversations')
+            .select('messages')
+            .eq('conversation_id', sessionId)
+            .single();
+            
+        if (error && error.code !== 'PGRST116') { // PGRST116 is "not found"
+            console.error('Error fetching conversation:', error);
+            return res.status(500).json({ error: 'Failed to fetch conversation' });
+        }
+        
+        res.json({ conversation: conversation?.messages || [] });
+        
+    } catch (error) {
+        console.error('Error:', error);
+        res.status(500).json({ error: 'Failed to fetch conversation' });
+    }
 });
 
 // API endpoint to clear conversation history
-app.delete('/api/conversation/:sessionId', (req, res) => {
-    const { sessionId } = req.params;
-    conversations.delete(sessionId);
-    res.json({ message: 'Conversation cleared' });
+app.delete('/api/conversation/:sessionId', async (req, res) => {
+    try {
+        const { sessionId } = req.params;
+        
+        const { error } = await supabase
+            .from('conversations')
+            .delete()
+            .eq('conversation_id', sessionId);
+            
+        if (error) {
+            console.error('Error deleting conversation:', error);
+            return res.status(500).json({ error: 'Failed to delete conversation' });
+        }
+        
+        res.json({ message: 'Conversation cleared' });
+        
+    } catch (error) {
+        console.error('Error:', error);
+        res.status(500).json({ error: 'Failed to delete conversation' });
+    }
 });
 
 // Health check endpoint
-app.get('/api/health', (req, res) => {
-    res.json({ 
-        status: 'OK', 
-        timestamp: new Date().toISOString(),
-        conversationsCount: conversations.size
-    });
+app.get('/api/health', async (req, res) => {
+    try {
+        // Get conversation count from Supabase
+        const { count, error } = await supabase
+            .from('conversations')
+            .select('*', { count: 'exact', head: true });
+            
+        if (error) {
+            console.error('Error getting conversation count:', error);
+        }
+        
+        res.json({ 
+            status: 'OK', 
+            timestamp: new Date().toISOString(),
+            conversationsCount: count || 0,
+            database: error ? 'Error' : 'Connected'
+        });
+        
+    } catch (error) {
+        console.error('Health check error:', error);
+        res.json({ 
+            status: 'OK', 
+            timestamp: new Date().toISOString(),
+            conversationsCount: 0,
+            database: 'Error'
+        });
+    }
 });
 
 app.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);
     console.log(`OpenAI API Key configured: ${process.env.OPENAI_API_KEY ? 'Yes' : 'No'}`);
+    console.log(`Supabase URL configured: ${process.env.SUPABASE_URL ? 'Yes' : 'No'}`);
+    console.log(`Supabase Key configured: ${process.env.SUPABASE_ANON_KEY ? 'Yes' : 'No'}`);
 }); 
