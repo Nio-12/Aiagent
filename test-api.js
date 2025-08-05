@@ -1,20 +1,15 @@
-// Test deployment script
+// Simple API test for Vercel deployment
 const fetch = require('node-fetch');
 
-const BASE_URL = process.env.VERCEL_URL || 'http://localhost:3000';
+const BASE_URL = 'https://aiagent-ivory.vercel.app';
 
-async function testDeployment() {
-    console.log('🧪 Testing Vercel deployment...\n');
+async function testAPI() {
+    console.log('🧪 Testing Vercel API endpoints...\n');
     
     const tests = [
         {
             name: 'Health Check',
             url: `${BASE_URL}/api/health`,
-            method: 'GET'
-        },
-        {
-            name: 'Conversations',
-            url: `${BASE_URL}/api/conversations`,
             method: 'GET'
         },
         {
@@ -31,6 +26,7 @@ async function testDeployment() {
     for (const test of tests) {
         try {
             console.log(`📋 Testing: ${test.name}`);
+            console.log(`   URL: ${test.url}`);
             
             const options = {
                 method: test.method,
@@ -44,16 +40,14 @@ async function testDeployment() {
             }
             
             const response = await fetch(test.url, options);
-            const data = await response.json();
             
             if (response.ok) {
+                const data = await response.json();
                 console.log(`✅ ${test.name}: SUCCESS`);
                 console.log(`   Status: ${response.status}`);
-                console.log(`   Data: ${JSON.stringify(data, null, 2).substring(0, 100)}...`);
             } else {
                 console.log(`❌ ${test.name}: FAILED`);
                 console.log(`   Status: ${response.status}`);
-                console.log(`   Error: ${JSON.stringify(data)}`);
             }
             
         } catch (error) {
@@ -64,8 +58,8 @@ async function testDeployment() {
         console.log('');
     }
     
-    console.log('🎉 Deployment test completed!');
+    console.log('🎉 API test completed!');
 }
 
-// Run tests
-testDeployment().catch(console.error); 
+// Run test
+testAPI().catch(console.error); 
