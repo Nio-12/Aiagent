@@ -29,7 +29,11 @@ module.exports = async (req, res) => {
     }
 
     try {
-        const { sessionId } = req.query;
+        const sessionId = req.query.sessionId || req.body.sessionId;
+        
+        if (!sessionId) {
+            return res.status(400).json({ error: 'Session ID is required' });
+        }
         
         // Get conversation from Supabase
         const { data: conversation, error: fetchError } = await supabase

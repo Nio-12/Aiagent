@@ -33,8 +33,12 @@ module.exports = async (req, res) => {
             return res.status(500).json({ error: 'Failed to fetch conversations' });
         }
         
-        // Return conversations with their actual analysis data
-        const conversationsWithAnalysis = data || [];
+        // Add empty analysis data for now (temporary workaround)
+        const conversationsWithAnalysis = (data || []).map(conv => ({
+            ...conv,
+            customer_analysis: null,
+            analysis_timestamp: null
+        }));
         
         res.json({ conversations: conversationsWithAnalysis });
     } catch (error) {

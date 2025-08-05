@@ -8,7 +8,7 @@ class Chatbot {
         // Generate a unique session ID for this conversation
         this.sessionId = this.generateSessionId();
         
-        // API configuration - use relative URLs for Vercel deployment
+        // API configuration - use relative URL for Vercel deployment
         this.apiUrl = '/api';
         
         this.setupEventListeners();

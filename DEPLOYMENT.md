@@ -3,107 +3,108 @@
 ## Prerequisites
 
 1. **Vercel Account**: Sign up at [vercel.com](https://vercel.com)
-2. **GitHub Account**: Connect your repository to Vercel
-3. **Environment Variables**: Set up your environment variables
+2. **Supabase Project**: Set up your Supabase database
+3. **OpenAI API Key**: Get your API key from [OpenAI](https://platform.openai.com)
 
-## Environment Variables Setup
+## Environment Variables
 
-In your Vercel project settings, add these environment variables:
+Set these environment variables in your Vercel project:
 
 ```
 OPENAI_API_KEY=your_openai_api_key_here
-SUPABASE_URL=your_supabase_url_here
-SUPABASE_ANON_KEY=your_supabase_anon_key_here
+SUPABASE_URL=your_supabase_project_url
+SUPABASE_ANON_KEY=your_supabase_anon_key
 ```
 
 ## Deployment Steps
 
-### Option 1: Deploy via Vercel CLI
-
-1. Install Vercel CLI:
+### 1. Install Vercel CLI
 ```bash
 npm i -g vercel
 ```
 
-2. Login to Vercel:
+### 2. Login to Vercel
 ```bash
 vercel login
 ```
 
-3. Deploy:
+### 3. Deploy
 ```bash
 vercel
 ```
 
-### Option 2: Deploy via GitHub Integration
+### 4. Set Environment Variables
+After deployment, go to your Vercel dashboard and set the environment variables listed above.
 
-1. Push your code to GitHub
-2. Connect your repository to Vercel
-3. Vercel will automatically deploy on every push
+### 5. Redeploy with Environment Variables
+```bash
+vercel --prod
+```
 
 ## Project Structure
 
 ```
-/
-├── api/                    # Serverless functions
-│   ├── chat.js            # Chat API endpoint
-│   ├── conversations.js   # Get all conversations
-│   ├── analyze/[sessionId].js  # Analyze conversation
-│   ├── conversation/[sessionId].js  # Get/delete conversation
-│   └── health.js          # Health check
-├── index.html             # Main chat interface
-├── dashboard.html         # Dashboard interface
-├── script.js              # Frontend chat logic
-├── dashboard.js           # Frontend dashboard logic
-├── styles.css             # Main styles
-├── dashboard.css          # Dashboard styles
-├── vercel.json            # Vercel configuration
-└── package.json           # Dependencies
+├── api/
+│   ├── chat.js          # Chat endpoint
+│   ├── conversations.js  # Get conversations
+│   ├── analyze.js       # Analyze conversations
+│   └── health.js        # Health check
+├── index.html           # Main chat interface
+├── dashboard.html       # Dashboard interface
+├── script.js           # Frontend chat logic
+├── dashboard.js        # Frontend dashboard logic
+├── styles.css          # Main styles
+├── dashboard.css       # Dashboard styles
+├── package.json        # Dependencies
+├── vercel.json         # Vercel configuration
+└── DEPLOYMENT.md       # This file
 ```
 
 ## API Endpoints
 
 - `POST /api/chat` - Send chat message
 - `GET /api/conversations` - Get all conversations
-- `POST /api/analyze/[sessionId]` - Analyze conversation
-- `GET /api/conversation/[sessionId]` - Get conversation
-- `DELETE /api/conversation/[sessionId]` - Delete conversation
+- `POST /api/analyze` - Analyze conversation
 - `GET /api/health` - Health check
 
-## Local Development
+## Features
 
-1. Install dependencies:
-```bash
-npm install
-```
-
-2. Create `.env` file with your environment variables
-
-3. Run locally:
-```bash
-npm run dev
-```
+- ✅ Real-time chat with OpenAI
+- ✅ Conversation management
+- ✅ Customer analysis
+- ✅ Dashboard with filtering
+- ✅ Serverless deployment
 
 ## Troubleshooting
 
 ### Common Issues
 
-1. **Environment Variables Not Set**: Make sure all required environment variables are set in Vercel
-2. **CORS Issues**: The API functions include CORS headers for cross-origin requests
-3. **Database Connection**: Ensure your Supabase URL and key are correct
+1. **Environment Variables Not Set**
+   - Ensure all environment variables are set in Vercel dashboard
+   - Redeploy after setting variables
 
-### Debugging
+2. **CORS Issues**
+   - All API endpoints include CORS headers
+   - Check browser console for errors
 
-- Check Vercel function logs in the dashboard
-- Use the health endpoint to verify database connection
-- Test API endpoints individually
+3. **Database Connection**
+   - Verify Supabase URL and key are correct
+   - Check Supabase dashboard for connection issues
 
-## Features
+### Local Development
 
-- ✅ Chat interface with OpenAI integration
-- ✅ Conversation management
-- ✅ Customer analysis with AI
-- ✅ Dashboard with filtering
-- ✅ Real-time conversation updates
-- ✅ Responsive design
-- ✅ Serverless architecture 
+For local development, you can still use the original server:
+
+```bash
+npm install
+npm run dev
+```
+
+This will run the Express server on localhost:3003.
+
+## Support
+
+For issues with deployment, check:
+1. Vercel function logs in dashboard
+2. Browser console for frontend errors
+3. Supabase logs for database issues 
