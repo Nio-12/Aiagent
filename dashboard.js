@@ -3,7 +3,13 @@ class Dashboard {
         // Use relative API URLs for Vercel deployment
         this.apiUrl = '/api';
         this.conversations = [];
+        this.filteredConversations = [];
         this.selectedConversation = null;
+        this.filters = {
+            industry: '',
+            consultation: '',
+            leadQuality: ''
+        };
         
         this.initializeElements();
         this.setupEventListeners();
@@ -18,6 +24,12 @@ class Dashboard {
         this.loadingSpinner = document.getElementById('loadingSpinner');
         this.backToChatBtn = document.getElementById('backToChat');
         this.closeDetailBtn = document.getElementById('closeDetail');
+        
+        // Filter elements
+        this.industryFilter = document.getElementById('industryFilter');
+        this.consultationFilter = document.getElementById('consultationFilter');
+        this.leadQualityFilter = document.getElementById('leadQualityFilter');
+        this.clearFiltersBtn = document.getElementById('clearFilters');
     }
     
     setupEventListeners() {
@@ -27,6 +39,26 @@ class Dashboard {
         
         this.closeDetailBtn.addEventListener('click', () => {
             this.hideConversationDetail();
+        });
+        
+        // Filter event listeners
+        this.industryFilter.addEventListener('change', () => {
+            this.filters.industry = this.industryFilter.value;
+            this.applyFilters();
+        });
+        
+        this.consultationFilter.addEventListener('change', () => {
+            this.filters.consultation = this.consultationFilter.value;
+            this.applyFilters();
+        });
+        
+        this.leadQualityFilter.addEventListener('change', () => {
+            this.filters.leadQuality = this.leadQualityFilter.value;
+            this.applyFilters();
+        });
+        
+        this.clearFiltersBtn.addEventListener('click', () => {
+            this.clearFilters();
         });
     }
     
@@ -43,7 +75,8 @@ class Dashboard {
             const data = await response.json();
             this.conversations = data.conversations || [];
             
-            this.renderConversations();
+            this.populateIndustryFilter();
+            this.applyFilters();
             this.hideLoading();
             
         } catch (error) {
@@ -54,17 +87,19 @@ class Dashboard {
     }
     
     renderConversations() {
-        if (this.conversations.length === 0) {
+        const conversationsToRender = this.filteredConversations.length > 0 ? this.filteredConversations : this.conversations;
+        
+        if (conversationsToRender.length === 0) {
             this.conversationsList.innerHTML = `
                 <div class="empty-state">
                     <h3>No conversations found</h3>
-                    <p>Start a new conversation to see it here.</p>
+                    <p>${this.filteredConversations.length === 0 && this.conversations.length > 0 ? 'No conversations match the current filters.' : 'Start a new conversation to see it here.'}</p>
                 </div>
             `;
             return;
         }
         
-        this.conversationsList.innerHTML = this.conversations
+        this.conversationsList.innerHTML = conversationsToRender
             .map(conversation => this.createConversationCard(conversation))
             .join('');
         
@@ -73,7 +108,7 @@ class Dashboard {
             card.addEventListener('click', (e) => {
                 // Don't trigger if clicking on delete button or analyze button
                 if (!e.target.classList.contains('delete-btn') && !e.target.classList.contains('analyze-btn')) {
-                    this.selectConversation(this.conversations[index]);
+                    this.selectConversation(conversationsToRender[index]);
                 }
             });
         });
@@ -294,11 +329,13 @@ class Dashboard {
             const conversationIndex = this.conversations.findIndex(conv => conv.conversation_id === conversationId);
             if (conversationIndex !== -1) {
                 this.conversations[conversationIndex].customer_analysis = data.analysis;
-                this.conversations[conversationIndex].analysis_timestamp = data.timestamp;
             }
             
-            // Re-render the list to show updated analysis
-            this.renderConversations();
+            // Update industry filter options
+            this.populateIndustryFilter();
+            
+            // Re-apply filters and render
+            this.applyFilters();
             
             // Show success message
             alert('Customer analysis completed successfully!');
@@ -432,6 +469,77 @@ class Dashboard {
                 <p>${message}</p>
             </div>
         `;
+    }
+    
+    // Filter methods
+    populateIndustryFilter() {
+        const industries = new Set();
+        
+        this.conversations.forEach(conversation => {
+            if (conversation.customer_analysis && conversation.customer_analysis.customerIndustry) {
+                industries.add(conversation.customer_analysis.customerIndustry);
+            }
+        });
+        
+        // Clear existing options except the first one
+        this.industryFilter.innerHTML = '<option value="">All Industries</option>';
+        
+        // Add industry options
+        industries.forEach(industry => {
+            const option = document.createElement('option');
+            option.value = industry;
+            option.textContent = industry;
+            this.industryFilter.appendChild(option);
+        });
+    }
+    
+    applyFilters() {
+        this.filteredConversations = this.conversations.filter(conversation => {
+            const analysis = conversation.customer_analysis;
+            
+            // Industry filter
+            if (this.filters.industry && analysis && analysis.customerIndustry) {
+                if (analysis.customerIndustry !== this.filters.industry) {
+                    return false;
+                }
+            }
+            
+            // Consultation filter
+            if (this.filters.consultation && analysis) {
+                const consultationBooked = analysis.customerConsultation;
+                if (this.filters.consultation === 'true' && !consultationBooked) {
+                    return false;
+                }
+                if (this.filters.consultation === 'false' && consultationBooked) {
+                    return false;
+                }
+            }
+            
+            // Lead quality filter
+            if (this.filters.leadQuality && analysis && analysis.leadQuality) {
+                if (analysis.leadQuality !== this.filters.leadQuality) {
+                    return false;
+                }
+            }
+            
+            return true;
+        });
+        
+        this.renderConversations();
+    }
+    
+    clearFilters() {
+        this.filters = {
+            industry: '',
+            consultation: '',
+            leadQuality: ''
+        };
+        
+        this.industryFilter.value = '';
+        this.consultationFilter.value = '';
+        this.leadQualityFilter.value = '';
+        
+        this.applyFilters();
     }
 }
 

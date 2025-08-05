@@ -16,6 +16,38 @@
         <div class="dashboard-content">
             <div class="conversations-list">
                 <h2>Recent Conversations</h2>
+                
+                <!-- Filter Controls -->
+                <div class="filter-controls">
+                    <div class="filter-group">
+                        <label for="industryFilter">Industry:</label>
+                        <select id="industryFilter" class="filter-select">
+                            <option value="">All Industries</option>
+                        </select>
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label for="consultationFilter">Consultation:</label>
+                        <select id="consultationFilter" class="filter-select">
+                            <option value="">All</option>
+                            <option value="true">Booked</option>
+                            <option value="false">Not Booked</option>
+                        </select>
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label for="leadQualityFilter">Lead Quality:</label>
+                        <select id="leadQualityFilter" class="filter-select">
+                            <option value="">All Qualities</option>
+                            <option value="good">Good</option>
+                            <option value="ok">OK</option>
+                            <option value="spam">Spam</option>
+                        </select>
+                    </div>
+                    
+                    <button id="clearFilters" class="clear-filters-btn">Clear Filters</button>
+                </div>
+                
                 <div id="conversationsList" class="conversations-grid">
                     <!-- Conversations will be loaded here -->
                 </div>
