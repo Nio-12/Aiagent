@@ -31,4 +31,9 @@ node test-api.js
 ## Troubleshooting
 1. Kiểm tra Vercel function logs
 2. Đảm bảo environment variables đã set
-3. Chạy `node test-api.js` để test 
+3. Chạy `node test-api.js` để test
+
+## Lưu ý
+- Đã loại bỏ cấu hình `builds` để tránh warning
+- Vercel sẽ tự động nhận diện API functions
+- Sử dụng `.vercelignore` để loại trừ files không cần thiết 
