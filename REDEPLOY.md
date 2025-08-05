@@ -36,4 +36,5 @@ node test-api.js
 ## Lưu ý
 - Đã loại bỏ cấu hình `builds` để tránh warning
 - Vercel sẽ tự động nhận diện API functions
-- Sử dụng `.vercelignore` để loại trừ files không cần thiết 
+- Sử dụng `.vercelignore` để loại trừ files không cần thiết
+- Đã thêm route cho dynamic analyze endpoint: `/api/analyze/(.*)` 

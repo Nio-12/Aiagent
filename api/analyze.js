@@ -29,7 +29,17 @@ module.exports = async (req, res) => {
     }
 
     try {
-        const sessionId = req.query.sessionId || req.body.sessionId;
+        // Extract sessionId from URL path or request body
+        let sessionId = req.query.sessionId || req.body.sessionId;
+        
+        // If no sessionId in query/body, try to extract from URL path
+        if (!sessionId && req.url) {
+            const urlParts = req.url.split('/');
+            const lastPart = urlParts[urlParts.length - 1];
+            if (lastPart && lastPart !== 'analyze') {
+                sessionId = lastPart;
+            }
+        }
         
         if (!sessionId) {
             return res.status(400).json({ error: 'Session ID is required' });

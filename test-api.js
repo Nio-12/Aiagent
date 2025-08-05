@@ -20,6 +20,11 @@ async function testAPI() {
                 message: 'Hello',
                 sessionId: 'test-session-' + Date.now()
             }
+        },
+        {
+            name: 'Analyze (POST)',
+            url: `${BASE_URL}/api/analyze/session_1754419586710_azwlf6s9d`,
+            method: 'POST'
         }
     ];
     
