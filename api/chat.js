@@ -1,16 +1,5 @@
-const express = require('express');
-const cors = require('cors');
 const OpenAI = require('openai');
 const { createClient } = require('@supabase/supabase-js');
-require('dotenv').config();
-
-const app = express();
-const PORT = process.env.PORT || 3000;
-
-// Middleware
-app.use(cors());
-app.use(express.json());
-app.use(express.static('.')); // Serve static files from current directory
 
 // Initialize OpenAI
 const openai = new OpenAI({
@@ -23,16 +12,22 @@ const supabase = createClient(
     process.env.SUPABASE_ANON_KEY
 );
 
-// Store conversations in memory as fallback (will be replaced by Supabase)
-const conversations = new Map();
+module.exports = async (req, res) => {
+    // Enable CORS
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-// Routes
-app.get('/', (req, res) => {
-    res.sendFile(__dirname + '/index.html');
-});
+    // Handle preflight requests
+    if (req.method === 'OPTIONS') {
+        res.status(200).end();
+        return;
+    }
 
-// API endpoint to handle chat messages
-app.post('/api/chat', async (req, res) => {
+    if (req.method !== 'POST') {
+        return res.status(405).json({ error: 'Method not allowed' });
+    }
+
     try {
         const { message, sessionId } = req.body;
         
@@ -97,7 +92,7 @@ OTHER RULES:
         
         // Call OpenAI API
         const completion = await openai.chat.completions.create({
-            model: 'gpt-3.5-turbo',
+            model: 'gpt-4o-mini',
             messages: messages,
             max_tokens: 150,
             temperature: 0.7,
@@ -154,88 +149,4 @@ OTHER RULES:
             details: error.message 
         });
     }
-});
-
-// API endpoint to get conversation history
-app.get('/api/conversation/:sessionId', async (req, res) => {
-    try {
-        const { sessionId } = req.params;
-        
-        const { data: conversation, error } = await supabase
-            .from('conversations')
-            .select('messages')
-            .eq('conversation_id', sessionId)
-            .single();
-            
-        if (error && error.code !== 'PGRST116') { // PGRST116 is "not found"
-            console.error('Error fetching conversation:', error);
-            return res.status(500).json({ error: 'Failed to fetch conversation' });
-        }
-        
-        res.json({ conversation: conversation?.messages || [] });
-        
-    } catch (error) {
-        console.error('Error:', error);
-        res.status(500).json({ error: 'Failed to fetch conversation' });
-    }
-});
-
-// API endpoint to clear conversation history
-app.delete('/api/conversation/:sessionId', async (req, res) => {
-    try {
-        const { sessionId } = req.params;
-        
-        const { error } = await supabase
-            .from('conversations')
-            .delete()
-            .eq('conversation_id', sessionId);
-            
-        if (error) {
-            console.error('Error deleting conversation:', error);
-            return res.status(500).json({ error: 'Failed to delete conversation' });
-        }
-        
-        res.json({ message: 'Conversation cleared' });
-        
-    } catch (error) {
-        console.error('Error:', error);
-        res.status(500).json({ error: 'Failed to delete conversation' });
-    }
-});
-
-// Health check endpoint
-app.get('/api/health', async (req, res) => {
-    try {
-        // Get conversation count from Supabase
-        const { count, error } = await supabase
-            .from('conversations')
-            .select('*', { count: 'exact', head: true });
-            
-        if (error) {
-            console.error('Error getting conversation count:', error);
-        }
-        
-        res.json({ 
-            status: 'OK', 
-            timestamp: new Date().toISOString(),
-            conversationsCount: count || 0,
-            database: error ? 'Error' : 'Connected'
-        });
-        
-    } catch (error) {
-        console.error('Health check error:', error);
-        res.json({ 
-            status: 'OK', 
-            timestamp: new Date().toISOString(),
-            conversationsCount: 0,
-            database: 'Error'
-        });
-    }
-});
-
-app.listen(PORT, () => {
-    console.log(`Server running on http://localhost:${PORT}`);
-    console.log(`OpenAI API Key configured: ${process.env.OPENAI_API_KEY ? 'Yes' : 'No'}`);
-    console.log(`Supabase URL configured: ${process.env.SUPABASE_URL ? 'Yes' : 'No'}`);
-    console.log(`Supabase Key configured: ${process.env.SUPABASE_ANON_KEY ? 'Yes' : 'No'}`);
-}); 
+}; 
