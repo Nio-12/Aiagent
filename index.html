@@ -261,8 +261,8 @@
                 // Generate a unique session ID for this conversation
                 this.sessionId = this.generateSessionId();
                 
-                // API configuration - will work with both local and deployed versions
-                this.apiUrl = window.location.origin + '/api';
+                // API configuration
+                this.apiUrl = 'http://localhost:3000/api';
                 
                 this.setupEventListeners();
             }

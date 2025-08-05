@@ -19,9 +19,8 @@ A web-based chatbot built with HTML, CSS, JavaScript frontend and Node.js backen
 - Node.js (v14 or higher)
 - OpenAI API key
 - Supabase account and project
-- Vercel account (for deployment)
 
-### Local Development
+### Installation
 
 1. **Install dependencies:**
    ```bash
@@ -29,15 +28,20 @@ A web-based chatbot built with HTML, CSS, JavaScript frontend and Node.js backen
    ```
 
 2. **Set up environment variables:**
-   - Copy `env.example` to `.env.local`
-   - Add your API keys to the `.env.local` file:
+   - Copy `env.example` to `.env`
+   - Add your API keys to the `.env` file:
      ```
      OPENAI_API_KEY=your_actual_openai_api_key_here
      SUPABASE_URL=your_supabase_project_url_here
      SUPABASE_ANON_KEY=your_supabase_anon_key_here
+     PORT=3000
      ```
 
-3. **Start local development server:**
+3. **Start the server:**
+   ```bash
+   npm start
+   ```
+   Or for development with auto-restart:
    ```bash
    npm run dev
    ```
@@ -45,31 +49,6 @@ A web-based chatbot built with HTML, CSS, JavaScript frontend and Node.js backen
 4. **Access the chatbot:**
    - Open your browser and go to `http://localhost:3000`
    - Start chatting with the AI!
-
-### Deployment to Vercel
-
-1. **Install Vercel CLI:**
-   ```bash
-   npm i -g vercel
-   ```
-
-2. **Deploy to Vercel:**
-   ```bash
-   vercel
-   ```
-
-3. **Set environment variables in Vercel:**
-   - Go to your Vercel dashboard
-   - Navigate to your project settings
-   - Add the following environment variables:
-     - `OPENAI_API_KEY`
-     - `SUPABASE_URL`
-     - `SUPABASE_ANON_KEY`
-
-4. **Deploy to production:**
-   ```bash
-   vercel --prod
-   ```
 
 ## How to Use
 
@@ -119,23 +98,19 @@ The backend provides the following API endpoints:
 
 ```
 Aiagent/
-├── index.html                    # Frontend chatbot application
-├── api/
-│   ├── chat.js                  # Chat API endpoint (serverless)
-│   ├── conversation/[sessionId].js # Conversation management API
-│   └── health.js                # Health check API
-├── vercel.json                  # Vercel configuration
-├── package.json                 # Node.js dependencies
-├── env.example                  # Environment variables template
-├── .gitignore                   # Git ignore rules
-└── README.md                   # This file
+├── index.html          # Frontend chatbot application
+├── server.js           # Node.js backend server
+├── package.json        # Node.js dependencies
+├── env.example         # Environment variables template
+├── .gitignore          # Git ignore rules
+└── README.md          # This file
 ```
 
 ## Customization
 
 ### Backend Customization
 
-To modify the AI behavior, edit the system message in `api/chat.js`:
+To modify the AI behavior, edit the system message in `server.js`:
 
 ```javascript
 {
@@ -160,7 +135,6 @@ To modify the UI, edit the CSS styles in `index.html`. The main classes are:
 
 ## Future Enhancements
 
-- Database integration for persistent conversation storage
 - Voice input/output capabilities
 - File sharing and image processing
 - User authentication and multiple user support
